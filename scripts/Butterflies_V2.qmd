@@ -1,0 +1,227 @@
+---
+title: "Butterflies"
+format: html
+---
+
+OK note to self, you need to save the file every time before running it I think. the errors that appear if you don't are incredible
+
+```{r setup chunk}
+
+# libraries: 
+library(tidyverse) 
+library(ggplot2)
+
+```
+
+```{r data overview i}
+
+# loading in the dataset
+dat = readxl::read_xlsx("../files/ButterflyNIRData.xlsx")
+
+head(dat)
+```
+
+```{r data overview ii}
+# genus dat obtained like so: 
+dat = dat %>% 
+  mutate(genus = str_match(gsub("_", " ", dat$Species), "([A-Z,a-z]*) ")[,2]) %>% 
+  as.data.frame()
+
+# data about the butterfly
+head(dat)[,c(1:2, 11, 24)]
+```
+
+### Other variables in the dataset
+
+#### Predictor variables:
+
+| Variable          | Description                                                    |
+|-------------------------|-----------------------------------------------|
+| Species           | species name                                                   |
+| temp.mean         | mean annual temperature (°C) across a species' range           |
+| temp.min          | mimimum annual temperature (°C) across a species' range        |
+| temp.max          | maximum annual temperature (°C) across a species' range        |
+| precip.mean       | mean of annual precipitation sum (mm) across a species' range  |
+| SolarRadi         | mean solar irradiation (kJ m-2 day-1) across a specie's range  |
+| WaterVapor        | water vapour pressure (kPa)                                    |
+| Isothermality     | isothermality                                                  |
+| PrecipSeasonality | precipitation seasonality                                      |
+| TempSeasonality   | temperature seasonality                                        |
+| Size              | Size (cm2) measured from one side of the both fore-/hind-wings |
+
+```{r data overview iii}
+
+# predictor var = different climactic measurements
+head(dat)[,c(3:11)]
+```
+
+| Variable | Description           |
+|----------|-----------------------|
+| B        | basal wing            |
+| E        | entire wings          |
+| T        | abdomen-thorax region |
+| Dors     | dorsal wings          |
+| Vent     | ventral wings         |
+
+![](images/butterfly_loc.png)
+
+| Variable | Description                                        |
+|----------|----------------------------------------------------|
+| Vis      | the mean reflectance in the visible range (UV+VIS) |
+| Nir      | the mean reflectance in the near-infared range     |
+
+```{r data overview iv}
+
+# response var set 1 = vis
+head(dat)[,12:17]
+
+# response var set 2 = nir
+head(dat)[,18:23]
+```
+
+```{r model attempt 1}
+
+longdat = dat %>%
+  pivot_longer(12:23,
+               names_pattern = "([A-Z]i[a-z])([A-Z][a-z]*)([A-Z])",
+               names_to = c(".value", "dorvent", "BET"))
+
+global_mod_vis = lme4::lmer(Vis ~ BET*SolarRadi + BET*precip.mean + BET*WaterVapor + BET*Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
+             data = longdat, na.action = "na.fail")
+
+```
+
+```{r z-score}
+
+# robbed from julian
+# jk it's called rob cause it's a robust z_score
+# but i did rob it, that parts not a lie
+jull_rob.zscore <- function(df){
+  mad.cols <- mad.temp <- med.cols <- c()
+  z.score <- data.frame()
+  for(i in 1:length(colnames(df))){
+    for(j in 1:length(df[,i])){
+      mad.temp[j] <- abs(as.numeric(df[j,i]) - median((df[,i])))
+    }
+    mad.cols[i] <- median((mad.temp))
+    med.cols[i] <- median(as.numeric(df[,i]))
+  }
+  for(i in 1:length(colnames(df))){
+    for(j in 1:length(df[,i])){
+      z.score[j,i] <- (0.6745*(df[j,i]-med.cols[i]))/mad.cols[i]
+    }
+  }
+  colnames(z.score) <- colnames(df)
+  rownames(z.score) <- rownames(df)
+  return(z.score = z.score)
+}
+
+zscore_dat = cbind(longdat[c(1, 12:16)], jull_rob.zscore(as.data.frame(longdat)[2:11]))
+
+```
+
+```{r model attempt 2}
+
+global_mod_vis = lme4::lmer(Vis ~ BET*SolarRadi + BET*precip.mean + BET*WaterVapor + BET*Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
+             data = zscore_dat, na.action = "na.fail")
+
+aic_score_vis = MuMIn::dredge(global_mod_vis, beta = "none")
+
+aic_score_vis %>% arrange(AICc) %>% head(3)
+
+```
+
+```{r vis model fit}
+
+zscore_dat$Vis %>% hist()
+zscore_dat$Vis %>% log %>% hist
+
+
+aic_mod_vis = zscore_dat %>% 
+  lme4::lmer((Vis) ~ BET*SolarRadi + BET*Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
+             data = ., na.action = "na.fail")
+
+aic_mod_vis_log = zscore_dat %>% 
+  lme4::lmer(log(Vis) ~ BET*SolarRadi + BET*Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
+             data = ., na.action = "na.fail")
+
+aic_mod_vis_glm = zscore_dat %>% 
+  lme4::glmer((Vis) ~ BET*SolarRadi + BET*Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
+             data = ., na.action = "na.fail", family = Gamma(link = "log"))
+
+
+```
+
+```{r vis residuals check}
+
+# DHARMa::testDispersion(aic_mod_vis)
+
+DHARMa::testDispersion(DHARMa::simulateResiduals(aic_mod_vis))
+
+DHARMa::simulateResiduals(aic_mod_vis, n = 1000, plot = TRUE)
+DHARMa::simulateResiduals(aic_mod_vis_log, n = 1000, plot = TRUE)
+DHARMa::simulateResiduals(aic_mod_vis_glm, n = 1000, plot = TRUE)
+
+```
+
+```{r nir model aic}
+
+global_mod_nir = lme4::lmer(Nir ~ BET*SolarRadi + BET*precip.mean + BET*WaterVapor + BET*Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
+             data = zscore_dat, na.action = "na.fail")
+
+aic_score_nir = MuMIn::dredge(global_mod_nir, beta = "none")
+
+aic_mod_nir = zscore_dat %>% 
+  lme4::lmer((Nir) ~ BET*SolarRadi + Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
+             data = ., na.action = "na.fail")
+
+aic_mod_nir_sqrt = zscore_dat %>% 
+  lme4::lmer(sqrt(Nir) ~ BET*SolarRadi + Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
+             data = ., na.action = "na.fail")
+
+shapiro.test(resid(aic_mod_nir))
+
+```
+
+```{r nir residuals check}
+
+DHARMa::testDispersion(aic_mod_nir)
+
+DHARMa::testDispersion(DHARMa::simulateResiduals(aic_mod_nir))
+
+DHARMa::simulateResiduals(aic_mod_nir, n = 1000, plot = TRUE)
+DHARMa::simulateResiduals(aic_mod_nir_sqrt, n = 1000, plot = TRUE)
+
+```
+
+```{r i loaded in ggplot2 earlier so we gotta use it right?? right????}
+
+
+```
+
+### Models
+
+this is the part where we test different models?
+
+```{r there will be an r chunk here, it's just a wip right now}
+
+
+```
+
+### Model strength
+
+this is the part where we do AIC comparisons
+
+```{r i promise there will be aic stuff here soon}
+
+
+```
+
+### Model fit
+
+this is the part where we use DHARMA or however it's capitalized to look at residuals and model fit
+
+```{r qqplot placeholder yum}
+
+
+```
