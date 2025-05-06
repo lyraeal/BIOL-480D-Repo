@@ -1,0 +1,166 @@
+---
+title: "BUTTERFLIES oops that was not supposed to be all caps"
+format: html
+---
+
+OK note to self, you need to save the file every time before running it I think. the errors that appear if you don't are incredible
+
+```{r setup chunk}
+
+# libraries: 
+library(tidyverse) 
+library(ggplot2)
+
+```
+
+```{r data overview i}
+
+# loading in the dataset
+dat = readxl::read_xlsx("../files/ButterflyNIRData.xlsx")
+
+head(dat)
+```
+
+```{r data overview ii}
+# genus dat obtained like so: 
+dat = dat %>% 
+  mutate(genus = str_match(gsub("_", " ", dat$Species), "([A-Z,a-z]*) ")[,2]) %>% 
+  as.data.frame()
+
+# data about the butterfly
+head(dat)[,c(1:2, 11, 24)]
+```
+
+### Other variables in the dataset
+
+#### Predictor variables:
+
+| Variable          | Description                                                    |
+|-------------------------|------------------------------------------------|
+| Species           | species name                                                   |
+| temp.mean         | mean annual temperature (°C) across a species' range           |
+| temp.min          | mimimum annual temperature (°C) across a species' range        |
+| temp.max          | maximum annual temperature (°C) across a species' range        |
+| precip.mean       | mean of annual precipitation sum (mm) across a species' range  |
+| SolarRadi         | mean solar irradiation (kJ m-2 day-1) across a specie's range  |
+| WaterVapor        | water vapour pressure (kPa)                                    |
+| Isothermality     | isothermality                                                  |
+| PrecipSeasonality | precipitation seasonality                                      |
+| TempSeasonality   | temperature seasonality                                        |
+| Size              | Size (cm2) measured from one side of the both fore-/hind-wings |
+
+```{r data overview iii}
+
+dat = dat %>% 
+  mutate(temp.range = temp.max - temp.min)
+
+# predictor var = different climactic measurements
+head(dat)[,c(3:11, 25)]
+```
+
+| Variable | Description           |
+|----------|-----------------------|
+| B        | basal wing            |
+| E        | entire wings          |
+| T        | abdomen-thorax region |
+| Dors     | dorsal wings          |
+| Vent     | ventral wings         |
+
+![](images/butterfly_loc.png)
+
+| Variable | Description                                        |
+|----------|----------------------------------------------------|
+| Vis      | the mean reflectance in the visible range (UV+VIS) |
+| Nir      | the mean reflectance in the near-infared range     |
+
+```{r data overview iv}
+
+# response var set 1 = vis
+head(dat)[,12:17]
+
+# response var set 2 = nir
+head(dat)[,18:23]
+```
+
+```{r}
+
+# VisDorsB
+
+dat %>%
+  pivot_longer(12:23,
+               names_pattern = "([A-Z]i[a-z])([A-Z][a-z]*)([A-Z])",
+               names_to = c(".value", "dorvent", "BET")) %>%
+  ggplot(aes(x = temp.mean, y = Nir, color = BET)) +
+  geom_point() + geom_smooth(method = "lm")
+
+dat %>% 
+  pivot_longer(12:23, 
+               names_pattern = "([A-Z]i[a-z])([A-Z][a-z]*)([A-Z])",
+               names_to = c(".value", "dorvent", "BET"))
+ lm(Vis ~ BET*SolarRadi + BET*precip.mean + BET*WaterVapor + BET*Isothermality + BET*temp.mean - 1, 
+    data = .) %>% arm::display()
+
+dat %>% 
+  pivot_longer(12:23, 
+               names_pattern = "([A-Z]i[a-z])([A-Z][a-z]*)([A-Z])",
+               names_to = c(".value", "dorvent", "BET")) %>% 
+  lme4::lmer(Vis ~ BET*SolarRadi + BET*precip.mean + BET*WaterVapor + BET*Isothermality + BET*temp.mean + (1|genus), 
+             data = .) %>% summary()
+
+dat %>% 
+  pivot_longer(12:23, 
+               names_pattern = "([A-Z]i[a-z])([A-Z][a-z]*)([A-Z])",
+               names_to = c(".value", "dorvent", "BET")) %>% 
+ lm(Nir ~ BET:temp.mean + (1/genus), 
+    data = .)
+
+```
+
+### PCA
+
+this is the part where he creates the pca we should prob also talk about our hypothesis here, cause i think it would be a good idea to explain why we're using a pca, and what exactly we're trying to measure.
+
+\[elaborate explanation incoming\]
+
+```{r that thing julian is doing with pcas}
+
+cbind(dat[1:5], rob.zscore(dat[6:10]))
+
+
+```
+
+### heading tbd
+
+maybe a section with qualitative predictions: like some figures! :D
+
+```{r i loaded in ggplot2 earlier so we gotta use it right?? right????}
+
+
+```
+
+### Models
+
+this is the part where we test different models?
+
+```{r there will be an r chunk here, it's just a wip right now}
+
+
+```
+
+### Model strength
+
+this is the part where we do AIC comparisons
+
+```{r i promise there will be aic stuff here soon}
+
+
+```
+
+### Model fit
+
+this is the part where we use DHARMA or however it's capitalized to look at residuals and model fit
+
+```{r qqplot placeholder yum}
+
+
+```

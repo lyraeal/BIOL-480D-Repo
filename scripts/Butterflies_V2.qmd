@@ -42,7 +42,7 @@ head(dat)[,c(1:2, 11, 24)]
 | temp.min          | mimimum annual temperature (°C) across a species' range        |
 | temp.max          | maximum annual temperature (°C) across a species' range        |
 | precip.mean       | mean of annual precipitation sum (mm) across a species' range  |
-| SolarRadi         | mean solar irradiation (kJ m-2 day-1) across a specie's range  |
+| SolarRadi         | mean solar irradiation (kJ m-2 day-1) across a species' range  |
 | WaterVapor        | water vapour pressure (kPa)                                    |
 | Isothermality     | isothermality                                                  |
 | PrecipSeasonality | precipitation seasonality                                      |
@@ -195,33 +195,6 @@ DHARMa::simulateResiduals(aic_mod_nir_sqrt, n = 1000, plot = TRUE)
 ```
 
 ```{r i loaded in ggplot2 earlier so we gotta use it right?? right????}
-
-
-```
-
-### Models
-
-this is the part where we test different models?
-
-```{r there will be an r chunk here, it's just a wip right now}
-
-
-```
-
-### Model strength
-
-this is the part where we do AIC comparisons
-
-```{r i promise there will be aic stuff here soon}
-
-
-```
-
-### Model fit
-
-this is the part where we use DHARMA or however it's capitalized to look at residuals and model fit
-
-```{r qqplot placeholder yum}
 
 
 ```
