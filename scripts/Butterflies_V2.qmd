@@ -5,7 +5,7 @@ format: html
 
 ## Study overview
 
-For our project, we decided to work with a dataset called *Data for butterfly near-infrared adaptation research* which we found on **Dryad**.
+Our group was interested in analyzing an ecological data set, since we have backgrounds in environmental field work. So for our project, we decided to work with a dataset called *Data for butterfly near-infrared adaptation research* which we found on **Dryad**. We decided on this dataset because it seemed to have many climate variables that could lead to model comparisons with different combinations of predictors. 
 
 The dataset was collected by Kang et al. (Kang, Changku; Lim, Sehyuk; Lee, Won Young; Choi, Yunki; Stuart-fox, Devi; Huertas, Blanca).
 
@@ -117,7 +117,9 @@ Additionally, certain butterfly body regions are more important for thermoregula
 
 Butterflies also regulate their body temperature by opening and closing their wings to expose or hide themselves from sunlight. **Dorsal basking** exposes the top part of their wings to sun, and plays an important role in **warming up**. Butterflies also close their wings tightly to shield themselves from solar radiation and **cool down**, which exposes the bottom, or **ventral** part of their wings.
 
-```{r intro graph}
+Below is one graph that explores a potential relationship between a climate variable (temp.mean) and the Visual reflectance of different butterfly body regions. This visualization supports the ecological hypothesis that Dorsal reflectance may be more important for warming while Ventral reflectance may be more important for cooling: you can see that the blue Dorsal regions generally have lower reflectance values since darker colors aid in absorbing heat, while pink Ventral regions have higher reflectance values since this may help butterflies cool off more efficiently by reflecting more sunlight when closing their wings. Additionally, Basal (B) and Thorax-Abdomen (T) regions are more involved in thermoregulation than the rest of the wing. This could be why the dashed lines for Entire wing (E) have lower slopes than the solid line VentralT and VentralB; changes in the climate variable of mean temperature have a stronger impact on the B and T regions, which are important in thermoregulation, than the E region.
+
+```{r intro graph, warning = F}
 dat %>%
   pivot_longer(12:23,
                names_pattern = "([A-Z]i[a-z])([A-Z][a-z]*[A-Z])",
@@ -137,6 +139,8 @@ dat %>%
   labs(x = "Mean Temperature (C)", y = "VIS Reflectance")
 
 ```
+
+This visualization provided evidence that made us want to test for more differences in body region reflectance and the impact that different climate variables have on this variation. For simplicity, we decided to focus on the body regions of Basal wing, Thorax, and Entire wing as our predictors of reflectance variation, rather than splitting these into Ventral and Dorsal as well. We hoped that we would still get significant results, since we hypothesized that Basal and Thorax regions would respond more strongly to climate variables than the Entire wing since they are more important in thermoregulation.
 
 #### Hypothesis
 
@@ -164,7 +168,7 @@ longdat[,c(1, 13:16)] %>% head(5)
 
 ```
 
-So now let's run the model! Our two response variables will be Vis and Nir, the reflectance on the UV / visual spectrum, and the infrared spectrum respectively. We'll be doing indendent models for each of these, so let's go through vis first.
+**So now let's run the model!** Our two response variables will be Vis and Nir, the reflectance on the UV / visual spectrum, and the infrared spectrum respectively. We'll be doing indendent models for each of these, so let's go through vis first.
 
 For our global model (aka our model with what we think is the maximum predictors and interactions that the model should have, we decided to look at 4 predictor variables: solar radiation, mean precipitation, water vapor pressure, and isothermality).
 
@@ -263,12 +267,15 @@ As you can see, the distribution of `Vis` is skewed left, and both the `sqrt()` 
 
 We also tried a glm with a gamma distribution and a log link.
 
+```{r vis hist}
+
+zscore_dat$Vis %>% hist(main = "no transformation on Vis")
+zscore_dat$Vis %>% sqrt %>% hist(main = "sqrt transformation on Vis")
+zscore_dat$Vis %>% log %>% hist(main = "log transformation on Vis")
+
+```
+
 ```{r creating alt vis mods, warning = FALSE}
-
-zscore_dat$Vis %>% hist()
-zscore_dat$Vis %>% sqrt %>% hist
-zscore_dat$Vis %>% log %>% hist
-
 
 aic_mod_vis_log = zscore_dat %>% 
   lme4::lmer(log(Vis) ~ BET*SolarRadi + BET*Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
@@ -319,11 +326,15 @@ Our most optimal model here is the inclusion of solar radiation, isothermality, 
 
 creating alternate methods!
 
-```{r nir alt models, warning = FALSE}
+```{r nir hist}
 
-zscore_dat$Nir %>% hist()
-zscore_dat$Nir %>% sqrt %>% hist
-zscore_dat$Nir %>% log %>% hist
+zscore_dat$Nir %>% hist(main = "no transformation on Nir")
+zscore_dat$Nir %>% sqrt %>% hist(main = "sqrt transformation on Nir")
+zscore_dat$Nir %>% log %>% hist(main = "log transformation on Nir")
+
+```
+
+```{r nir alt models, warning = FALSE}
 
 aic_mod_nir = zscore_dat %>% 
   lme4::lmer((Nir) ~ BET*SolarRadi + Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
@@ -356,10 +367,17 @@ DHARMa::simulateResiduals(aic_mod_nir_log, n = 1000, plot = TRUE)
 
 ## Final Results + plots!
 
-```{r final models}
+```{r final vis models}
 
 aic_mod_vis_log %>% car::Anova()
+aic_mod_vis_log %>% summary %>% coefficients()
+
+```
+
+```{r final nir models}
+
 aic_mod_nir_log %>% car::Anova()
+aic_mod_nir_log %>% summary %>% coefficients()
 
 ```
 
@@ -371,8 +389,7 @@ longdat[,c(1:2, 8, 14:16)] %>%
   geom_smooth(method = "lm", aes(color = BET)) + 
   geom_smooth(method = "lm", color = "red") + 
   labs(x = "Mean temp", y = "UV / Visual reflectance", color = "Location") +
-  scale_color_manual(values = c("B" = "#53599A", "E" = "#6D9DC5", 
-                                "T" = "#80DED9")) +
+  scale_color_viridis_d(begin = 0.1, end = 0.7) + 
   theme_classic() + 
   theme(axis.title = element_text(size = 12)) 
   
@@ -383,8 +400,7 @@ longdat[,c(1:2, 8, 14:16)] %>%
   geom_smooth(method = "lm", aes(color = BET)) + 
   geom_smooth(method = "lm", color = "red") + 
   labs(x = "Mean temp", y = "Infrared reflectance", color = "Location") +
-  scale_color_manual(values = c("B" = "#53599A", "E" = "#6D9DC5", 
-                                "T" = "#80DED9")) +
+  scale_color_viridis_d(begin = 0.1, end = 0.7) + 
   theme_classic() + 
   theme(axis.title = element_text(size = 12)) 
 
@@ -402,7 +418,7 @@ longdat[,c(1:2, 8, 14:16)] %>%
   geom_point() + 
   geom_smooth(method = "lm") + 
   theme_classic() +
-  labs(y = "UV / Visual reflectance") +
+  labs(y = "Infrared reflectance") +
   theme_classic() + 
   theme(axis.title = element_text(size = 12)) 
 
