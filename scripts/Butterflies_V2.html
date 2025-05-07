@@ -95,8 +95,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 <p>OK note to self, you need to save the file every time before running it I think. the errors that appear if you don’t are incredible</p>
+<p>Wowww, this takes heckin forever to knit</p>
 <section id="study-overview" class="level2">
-<h2 class="anchored" data-anchor-id="study-overview">Study Overview</h2>
+<h2 class="anchored" data-anchor-id="study-overview">Study overview</h2>
+<p>For our project, we decided to work with a dataset called <em>Data for butterfly near-infrared adaptation research</em> which we found on <strong>Dryad</strong>.</p>
+<p>The dataset was collected by Kang et al.&nbsp;(Kang, Changku; Lim, Sehyuk; Lee, Won Young; Choi, Yunki; Stuart-fox, Devi; Huertas, Blanca).</p>
+<p>This dataset was collected with the goal of determining whether butterfly light reflectance is impacted by climate variables. To accomplish this, the researchers photographed 343 European butterfly species from the Natural History Museum of London and measured both Visible (VIS) and Near-infrared (NIR) reflectance of different body regions.</p>
+<p>When possible, they photographed two of each species and averaged the reflectance values, for a sample size of 684 specimens overall. This sample size could skew our results because it did not account for a lot of intraspecific variation, and took 1-2 butterflies to be representative of an entire climatic niche. On a positive note, the 343 species photographed was a large sample size for focusing on interspecific variation, since this covered 70% of all butterfly species in Europe.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># html view: https://htmlpreview.github.io/?https://github.com/lyraeal/BIOL-480D-Repo/blob/main/scripts/Butterflies_V2.html</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -120,7 +125,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 <section id="data-overview" class="level2">
-<h2 class="anchored" data-anchor-id="data-overview">Data Overview</h2>
+<h2 class="anchored" data-anchor-id="data-overview">Data overview</h2>
+<p>Let’s take a quick look at the dataset! Each of the rows is a species of butterfly, and then there are several predictor variables and response variables that the researchers looked at.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># loading in the dataset</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> readxl<span class="sc">::</span><span class="fu">read_xlsx</span>(<span class="st">"../files/ButterflyNIRData.xlsx"</span>)</span>
@@ -143,32 +149,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 #   NirVentE &lt;dbl&gt;, NirVentT &lt;dbl&gt;</code></pre>
 </div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># genus dat obtained like so: </span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> dat <span class="sc">%&gt;%</span> </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">genus =</span> <span class="fu">str_match</span>(<span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, dat<span class="sc">$</span>Species), <span class="st">"([A-Z,a-z]*) "</span>)[,<span class="dv">2</span>]) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># data about the butterfly</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dat)[,<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="dv">11</span>, <span class="dv">24</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>                Species temp.mean     Size      genus
-1 Iphiclides podalirius     10.87 20.25024 Iphiclides
-2      Papilio alexanor     12.61 17.36228    Papilio
-3      Papilio hospiton     14.68 13.84361    Papilio
-4       Papilio machaon      9.28 21.61053    Papilio
-5  Parnassius mnemosyne      8.79 10.44033 Parnassius
-6     Parnassius apollo      8.14 24.07698 Parnassius</code></pre>
-</div>
-</div>
-<section id="other-variables-in-the-dataset" class="level3">
-<h3 class="anchored" data-anchor-id="other-variables-in-the-dataset">Other variables in the dataset</h3>
-<section id="predictor-variables" class="level4">
-<h4 class="anchored" data-anchor-id="predictor-variables">Predictor variables:</h4>
+<p>We also created a column that extracted the genus of each species. Here’s some of the data we have on each butterfly species.</p>
+<p>We have the species and genus of each butterfly, which are <em>character</em> data, and the size of the entire wing was measured as an additional variable to consider, and was averaged within a species.</p>
 <table class="table">
 <colgroup>
-<col style="width: 34%">
-<col style="width: 65%">
+<col style="width: 36%">
+<col style="width: 63%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -182,44 +168,84 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>species name</td>
 </tr>
 <tr class="even">
+<td>Size</td>
+<td>size (cm2) measured from one side of the both fore-/hind-wings</td>
+</tr>
+<tr class="odd">
+<td>Genus</td>
+<td>genus of species</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># genus dat obtained like so: </span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> dat <span class="sc">%&gt;%</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">genus =</span> <span class="fu">str_match</span>(<span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, dat<span class="sc">$</span>Species), <span class="st">"([A-Z,a-z]*) "</span>)[,<span class="dv">2</span>]) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># data about the butterfly</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dat)[,<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">24</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                Species     Size      genus
+1 Iphiclides podalirius 20.25024 Iphiclides
+2      Papilio alexanor 17.36228    Papilio
+3      Papilio hospiton 13.84361    Papilio
+4       Papilio machaon 21.61053    Papilio
+5  Parnassius mnemosyne 10.44033 Parnassius
+6     Parnassius apollo 24.07698 Parnassius</code></pre>
+</div>
+</div>
+<p>We have a bunch of climactic predictor variables in the dataset as well!</p>
+<p>The climate variables were collected from the CLIMBER dataset and WorldClim data, and were averaged across the geographic distribution of each species. The data class for all variables here is <em>numeric</em></p>
+<section id="predictor-variables" class="level4">
+<h4 class="anchored" data-anchor-id="predictor-variables">Predictor variables</h4>
+<table class="table">
+<colgroup>
+<col style="width: 36%">
+<col style="width: 63%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
 <td>temp.mean</td>
 <td>mean annual temperature (°C) across a species’ range</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>temp.min</td>
 <td>mimimum annual temperature (°C) across a species’ range</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>temp.max</td>
 <td>maximum annual temperature (°C) across a species’ range</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>precip.mean</td>
 <td>mean of annual precipitation sum (mm) across a species’ range</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>SolarRadi</td>
 <td>mean solar irradiation (kJ m-2 day-1) across a species’ range</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>WaterVapor</td>
 <td>water vapour pressure (kPa)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Isothermality</td>
 <td>isothermality</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>PrecipSeasonality</td>
 <td>precipitation seasonality</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>TempSeasonality</td>
 <td>temperature seasonality</td>
-</tr>
-<tr class="odd">
-<td>Size</td>
-<td>Size (cm2) measured from one side of the both fore-/hind-wings</td>
 </tr>
 </tbody>
 </table>
@@ -243,6 +269,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 6          33.28837        681.8594 24.07698</code></pre>
 </div>
 </div>
+</section>
+<section id="response-variables" class="level4">
+<h4 class="anchored" data-anchor-id="response-variables">Response variables</h4>
+<p>Then, you’ll see below that each response column is a combination of 3 separate parts.</p>
 <table class="table">
 <thead>
 <tr class="header">
@@ -316,7 +346,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 6 37.05157 82.67039 22.88069 78.94529 90.00324 55.30078</code></pre>
 </div>
 </div>
-<p>Our data currently groups together the dorsal and ventral sides with basal, entire, and abdomen / thorax (BET). Since we wanted to look only at the interaction between BET with the climactic variables, we separated out the dorsal and ventral into its own column, and BET into its own columns.</p>
+</section>
+</section>
+<section id="further-context-for-variables" class="level2">
+<h2 class="anchored" data-anchor-id="further-context-for-variables">Further context for variables</h2>
+<p>The reflectance of butterfly wings in the <strong>Visual (VIS)</strong> range plays an important role in both <strong>camouflage and thermoregulation</strong>; the color of butterflies helps them to both blend into their surroundings or scare off predators, and to absorb or reflect a certain amount of heat from solar energy. However, 50% of solar energy extends beyond visual wavelengths to the Near-infrared (NIR). In contrast to VIS range reflectance, <strong>NIR</strong> reflectance plays no role in camouflage, suggesting it could play a <strong>more important role in thermoregulation</strong>.</p>
+<p>Additionally, certain butterfly body regions are more important for thermoregulation than others. Specifically, the <strong>basal region</strong> of the wings and the <strong>thorax/abdomen</strong> region of the body <strong>conduct heat</strong> to the flight muscles.</p>
+<p>Butterflies also regulate their body temperature by opening and closing their wings to expose or hide themselves from sunlight. <strong>Dorsal basking</strong> exposes the top part of their wings to sun, and plays an important role in <strong>warming up</strong>. Butterflies also close their wings tightly to shield themselves from solar radiation and <strong>cool down</strong>, which exposes the bottom, or <strong>ventral</strong> part of their wings.</p>
+<section id="hypothesis" class="level4">
+<h4 class="anchored" data-anchor-id="hypothesis">Hypothesis</h4>
+<p>Therefore, <strong>different climatic pressures could cause variation in reflectance values for different butterfly body regions</strong>.</p>
+<p>In other words, we think the BET (basal, entire, abdomen / thorax) regions might reflect light differently depending on the typical climactic conditions that each species might be exposed to.</p>
+</section>
+</section>
+<section id="data-manipulation" class="level2">
+<h2 class="anchored" data-anchor-id="data-manipulation">Data Manipulation</h2>
+<p>Our data currently groups together the dorsal and ventral sides with basal, entire, and abdomen / thorax (BET). However, we wanted to look only at the interaction between BET with the climactic variables, so we needed to separate out the dorsal and ventral into its own column, and BET into its own columns.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># separating out dorsal / ventral and B / E / T</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>longdat <span class="ot">=</span> dat <span class="sc">%&gt;%</span></span>
@@ -616,8 +661,6 @@ Scaled residual values: 0.443 0.49 0.234 0.951 0.68 0.76 0.05 0.261 0.133 0.698 
 Scaled residual values: 0.516 0.5 0.286 0.921 0.642 0.81 0.026 0.319 0.164 0.723 0.476 0.383 0.073 0.29 0.012 0.658 0.502 0.588 0.014 0.168 ...</code></pre>
 </div>
 </div>
-</section>
-</section>
 </section>
 
 </main>

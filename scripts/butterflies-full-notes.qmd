@@ -7,15 +7,7 @@ OK note to self, you need to save the file every time before running it I think.
 
 Wowww, this takes heckin forever to knit
 
-## Study overview
-
-For our project, we decided to work with a dataset called *Data for butterfly near-infrared adaptation research* which we found on **Dryad**.
-
-The dataset was collected by Kang et al. (Kang, Changku; Lim, Sehyuk; Lee, Won Young; Choi, Yunki; Stuart-fox, Devi; Huertas, Blanca).
-
-This dataset was collected with the goal of determining whether butterfly light reflectance is impacted by climate variables. To accomplish this, the researchers photographed 343 European butterfly species from the Natural History Museum of London and measured both Visible (VIS) and Near-infrared (NIR) reflectance of different body regions.
-
-When possible, they photographed two of each species and averaged the reflectance values, for a sample size of 684 specimens overall. This sample size could skew our results because it did not account for a lot of intraspecific variation, and took 1-2 butterflies to be representative of an entire climatic niche. On a positive note, the 343 species photographed was a large sample size for focusing on interspecific variation, since this covered 70% of all butterfly species in Europe.
+## Study Overview
 
 ```{r setup chunk}
 
@@ -29,9 +21,7 @@ library(ggplot2)
 
 ```
 
-## Data overview
-
-Let's take a quick look at the dataset! Each of the rows is a species of butterfly, and then there are several predictor variables and response variables that the researchers looked at.
+## Data Overview
 
 ```{r data overview i}
 
@@ -41,16 +31,6 @@ dat = readxl::read_xlsx("../files/ButterflyNIRData.xlsx")
 head(dat)
 ```
 
-We also created a column that extracted the genus of each species. Here's some of the data we have on each butterfly species.
-
-We have the species and genus of each butterfly, which are *character* data, and the size of the entire wing was measured as an additional variable to consider, and was averaged within a species.
-
-| Variable | Description                                                    |
-|--------------------------|---------------------------------------------|
-| Species  | species name                                                   |
-| Size     | size (cm2) measured from one side of the both fore-/hind-wings |
-| Genus    | genus of species                                               |
-
 ```{r data overview ii}
 # genus dat obtained like so: 
 dat = dat %>% 
@@ -58,36 +38,32 @@ dat = dat %>%
   as.data.frame()
 
 # data about the butterfly
-head(dat)[,c(1, 11, 24)]
+head(dat)[,c(1:2, 11, 24)]
 ```
 
-We have a bunch of climactic predictor variables in the dataset as well!
+### Other variables in the dataset
 
-The climate variables were collected from the CLIMBER dataset and WorldClim data, and were averaged across the geographic distribution of each species. The data class for all variables here is *numeric*
+#### Predictor variables:
 
-#### Predictor variables
-
-| Variable          | Description                                                   |
-|--------------------------|---------------------------------------------|
-| temp.mean         | mean annual temperature (°C) across a species' range          |
-| temp.min          | mimimum annual temperature (°C) across a species' range       |
-| temp.max          | maximum annual temperature (°C) across a species' range       |
-| precip.mean       | mean of annual precipitation sum (mm) across a species' range |
-| SolarRadi         | mean solar irradiation (kJ m-2 day-1) across a species' range |
-| WaterVapor        | water vapour pressure (kPa)                                   |
-| Isothermality     | isothermality                                                 |
-| PrecipSeasonality | precipitation seasonality                                     |
-| TempSeasonality   | temperature seasonality                                       |
+| Variable          | Description                                                    |
+|-------------------------|-----------------------------------------------|
+| Species           | species name                                                   |
+| temp.mean         | mean annual temperature (°C) across a species' range           |
+| temp.min          | mimimum annual temperature (°C) across a species' range        |
+| temp.max          | maximum annual temperature (°C) across a species' range        |
+| precip.mean       | mean of annual precipitation sum (mm) across a species' range  |
+| SolarRadi         | mean solar irradiation (kJ m-2 day-1) across a species' range  |
+| WaterVapor        | water vapour pressure (kPa)                                    |
+| Isothermality     | isothermality                                                  |
+| PrecipSeasonality | precipitation seasonality                                      |
+| TempSeasonality   | temperature seasonality                                        |
+| Size              | Size (cm2) measured from one side of the both fore-/hind-wings |
 
 ```{r data overview iii}
 
 # predictor var = different climactic measurements
 head(dat)[,c(3:11)]
 ```
-
-#### Response variables
-
-Then, you'll see below that each response column is a combination of 3 separate parts.
 
 | Variable | Description           |
 |----------|-----------------------|
@@ -113,23 +89,7 @@ head(dat)[,12:17]
 head(dat)[,18:23]
 ```
 
-## Further context for variables
-
-The reflectance of butterfly wings in the **Visual (VIS)** range plays an important role in both **camouflage and thermoregulation**; the color of butterflies helps them to both blend into their surroundings or scare off predators, and to absorb or reflect a certain amount of heat from solar energy. However, 50% of solar energy extends beyond visual wavelengths to the Near-infrared (NIR). In contrast to VIS range reflectance, **NIR** reflectance plays no role in camouflage, suggesting it could play a **more important role in thermoregulation**.
-
-Additionally, certain butterfly body regions are more important for thermoregulation than others. Specifically, the **basal region** of the wings and the **thorax/abdomen** region of the body **conduct heat** to the flight muscles.
-
-Butterflies also regulate their body temperature by opening and closing their wings to expose or hide themselves from sunlight. **Dorsal basking** exposes the top part of their wings to sun, and plays an important role in **warming up**. Butterflies also close their wings tightly to shield themselves from solar radiation and **cool down**, which exposes the bottom, or **ventral** part of their wings.
-
-#### Hypothesis
-
-Therefore, **different climatic pressures could cause variation in reflectance values for different butterfly body regions**.
-
-In other words, we think the BET (basal, entire, abdomen / thorax) regions might reflect light differently depending on the typical climactic conditions that each species might be exposed to.
-
-## Data Manipulation
-
-Our data currently groups together the dorsal and ventral sides with basal, entire, and abdomen / thorax (BET). However, we wanted to look only at the interaction between BET with the climactic variables, so we needed to separate out the dorsal and ventral into its own column, and BET into its own columns.
+Our data currently groups together the dorsal and ventral sides with basal, entire, and abdomen / thorax (BET). Since we wanted to look only at the interaction between BET with the climactic variables, we separated out the dorsal and ventral into its own column, and BET into its own columns. 
 
 ```{r long dat}
 
@@ -152,9 +112,9 @@ global_mod_vis = lme4::lmer(Vis ~ BET*SolarRadi + BET*precip.mean + BET*WaterVap
 
 ```
 
-When running the model, we immediately ran into a warning that our predictor variables are on different scales, and to accomodate for this, we decided to convert all our values to z-scores so they could be on similar scales.
+When running the model, we immediately ran into a warning that our predictor variables are on different scales, and to accomodate for this, we decided to convert all our values to z-scores so they could be on similar scales. 
 
-Since our data is not normally distributed, we did a robust z-score.
+Since our data is not normally distributed, we did a robust z-score. 
 
 ```{r z-score}
 
@@ -187,6 +147,8 @@ zscore_dat %>% head(5)
 
 ```
 
+
+
 ```{r vis aic scores, warning = FALSE}
 
 global_mod_vis = lme4::lmer(Vis ~ BET*SolarRadi + BET*precip.mean + BET*WaterVapor + BET*Isothermality + BET*temp.mean + (1|genus) + (1|dorvent) - 1, 
@@ -198,7 +160,7 @@ aic_score_vis %>% arrange(AICc) %>% head(3)
 
 ```
 
-And the model best chosen by our AIC test is this one! We are including solar radiation, isothermality, mean temperature, and all of the interactions between those and BET.
+And the model best chosen by our AIC test is this one! We are including solar radiation, isothermality, mean temperature, and all of the interactions between those and BET. 
 
 ```{r vis aic-chosen model}
 
@@ -222,11 +184,11 @@ DHARMa::simulateResiduals(aic_mod_vis, n = 1000, plot = TRUE)
 
 Well clearly, these aren't the greatest model fits. So from here we wanted to see if there were any models we could fit with different distributions that may improve things.
 
-So far we have been using normal distributions to do everything and the last DHARMa reading was very clearly pretty terrible.
+So far we have been using normal distributions to do everything and the last DHARMa reading was very clearly pretty terrible. 
 
-As you can see, the distribution of `Vis` is skewed left, and both the `sqrt()` and the `log()` transformed versions look a lot better! We decided to try a model that tries transforming them like that.
+As you can see, the distribution of `Vis` is skewed left, and both the `sqrt()` and the `log()` transformed versions look a lot better! We decided to try a model that tries transforming them like that. 
 
-We also tried a glm with a gamma distribution and a log link.
+We also tried a glm with a gamma distribution and a log link. 
 
 ```{r creating alt vis mods, warning = FALSE}
 
@@ -250,7 +212,7 @@ aic_mod_vis_glm = zscore_dat %>%
 
 ```
 
-To check the fit of the model, we're looking at AIC scores again!
+To check the fit of the model, we're looking at AIC scores again! 
 
 Then we can compare the model with the best AIC to the residual plots we observed originally to see if there's any improvement!
 
@@ -263,9 +225,9 @@ DHARMa::simulateResiduals(aic_mod_vis_log, n = 1000, plot = TRUE)
 
 ```
 
-It's still not great, but it looks a lot better!
+It's still not great, but it looks a lot better! 
 
-And now we repeat the process for the infrared data.
+And now we repeat the process for the infrared data. 
 
 ```{r nir model aic, warning = FALSE}
 
@@ -278,9 +240,9 @@ aic_score_nir %>% arrange(AICc) %>% head(3)
 
 ```
 
-Our most optimal model here is the inclusion of solar radiation, isothermality, and mean temperature, but with only solar radiation and mean temperature interacting with BET.
+Our most optimal model here is the inclusion of solar radiation, isothermality, and mean temperature, but with only solar radiation and mean temperature interacting with BET. 
 
-creating alternate methods!
+creating alternate methods! 
 
 ```{r, warning = FALSE}
 
@@ -306,7 +268,7 @@ aic_mod_nir_glm = zscore_dat %>%
 
 ```
 
-Here it looks like the log transformed data is more skewed than either alternative, but the model still fit the best according to the AIC!
+Here it looks like the log transformed data is more skewed than either alternative, but the model still fit the best according to the AIC! 
 
 ```{r nir residuals check}
 
