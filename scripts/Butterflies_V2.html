@@ -95,9 +95,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 <p>OK note to self, you need to save the file every time before running it I think. the errors that appear if you don’t are incredible</p>
+<section id="study-overview" class="level2">
+<h2 class="anchored" data-anchor-id="study-overview">Study Overview</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># libraries: </span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># html view: https://htmlpreview.github.io/?https://github.com/lyraeal/BIOL-480D-Repo/blob/main/scripts/Butterflies_V2.html</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># libraries: </span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 ✔ dplyr     1.1.4     ✔ readr     2.1.5
@@ -110,8 +114,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 ✖ dplyr::lag()    masks stats::lag()
 ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># library(MuMIn)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># library(DHARMa)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="data-overview" class="level2">
+<h2 class="anchored" data-anchor-id="data-overview">Data Overview</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># loading in the dataset</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> readxl<span class="sc">::</span><span class="fu">read_xlsx</span>(<span class="st">"../files/ButterflyNIRData.xlsx"</span>)</span>
@@ -307,211 +316,92 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 6 37.05157 82.67039 22.88069 78.94529 90.00324 55.30078</code></pre>
 </div>
 </div>
+<p>Our data currently groups together the dorsal and ventral sides with basal, entire, and abdomen / thorax (BET). Since we wanted to look only at the interaction between BET with the climactic variables, we separated out the dorsal and ventral into its own column, and BET into its own columns.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>longdat <span class="ot">=</span> dat <span class="sc">%&gt;%</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="dv">12</span><span class="sc">:</span><span class="dv">23</span>,</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_pattern =</span> <span class="st">"([A-Z]i[a-z])([A-Z][a-z]*)([A-Z])"</span>,</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">".value"</span>, <span class="st">"dorvent"</span>, <span class="st">"BET"</span>))</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>global_mod_vis <span class="ot">=</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(Vis <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>precip.mean <span class="sc">+</span> BET<span class="sc">*</span>WaterVapor <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> longdat, <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># separating out dorsal / ventral and B / E / T</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>longdat <span class="ot">=</span> dat <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="dv">12</span><span class="sc">:</span><span class="dv">23</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_pattern =</span> <span class="st">"([A-Z]i[a-z])([A-Z][a-z]*)([A-Z])"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">".value"</span>, <span class="st">"dorvent"</span>, <span class="st">"BET"</span>))</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>longdat[,<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">13</span><span class="sc">:</span><span class="dv">16</span>)] <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 5
+  Species               dorvent BET     Vis   Nir
+  &lt;chr&gt;                 &lt;chr&gt;   &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 Iphiclides podalirius Dors    B      25.9  52.0
+2 Iphiclides podalirius Dors    E      43.7  78.2
+3 Iphiclides podalirius Dors    T      14.6  37.7
+4 Iphiclides podalirius Vent    B      44.4  89.1
+5 Iphiclides podalirius Vent    E      49.0  85.6</code></pre>
+</div>
+</div>
+<p>So now let’s run the model! For our global model (aka our model with what we think is the maximum predictors and interactions that the model should have, we decided to look at solar radiation, mean precipitation, water vapor pressure, and isothermality). We chose to look at these variables since we expected them to have effects on our response variables. They are climate variables that have large implications for butterfly life and wing reflectance. Temperature mean and isothermality both have to do with temperature regulation. Mean precipitation and water vapor both have to do with moisture regulation, which we hypothesize are connected to wing area and general reflectance. We also expect solar radiation to impact reflectance directly.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>global_mod_vis <span class="ot">=</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(Vis <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>precip.mean <span class="sc">+</span> BET<span class="sc">*</span>WaterVapor <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> longdat, <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Some predictor variables are on very different scales: consider
 rescaling</code></pre>
 </div>
 </div>
+<p>When running the model, we immediately ran into a warning that our predictor variables are on different scales, and to accomodate for this, we decided to convert all our values to z-scores so they could be on similar scales.</p>
+<p>Since our data is not normally distributed, we did a robust z-score.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># robbed from julian</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># jk it's called rob cause it's a robust z_score</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># but i did rob it, that parts not a lie</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>jull_rob.zscore <span class="ot">&lt;-</span> <span class="cf">function</span>(df){</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  mad.cols <span class="ot">&lt;-</span> mad.temp <span class="ot">&lt;-</span> med.cols <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  z.score <span class="ot">&lt;-</span> <span class="fu">data.frame</span>()</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(<span class="fu">colnames</span>(df))){</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(df[,i])){</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>      mad.temp[j] <span class="ot">&lt;-</span> <span class="fu">abs</span>(<span class="fu">as.numeric</span>(df[j,i]) <span class="sc">-</span> <span class="fu">median</span>((df[,i])))</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    mad.cols[i] <span class="ot">&lt;-</span> <span class="fu">median</span>((mad.temp))</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    med.cols[i] <span class="ot">&lt;-</span> <span class="fu">median</span>(<span class="fu">as.numeric</span>(df[,i]))</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(<span class="fu">colnames</span>(df))){</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(df[,i])){</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>      z.score[j,i] <span class="ot">&lt;-</span> (<span class="fl">0.6745</span><span class="sc">*</span>(df[j,i]<span class="sc">-</span>med.cols[i]))<span class="sc">/</span>mad.cols[i]</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(z.score) <span class="ot">&lt;-</span> <span class="fu">colnames</span>(df)</span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames</span>(z.score) <span class="ot">&lt;-</span> <span class="fu">rownames</span>(df)</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="at">z.score =</span> z.score)</span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>zscore_dat <span class="ot">=</span> <span class="fu">cbind</span>(longdat[<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">12</span><span class="sc">:</span><span class="dv">16</span>)], <span class="fu">jull_rob.zscore</span>(<span class="fu">as.data.frame</span>(longdat)[<span class="dv">2</span><span class="sc">:</span><span class="dv">11</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># robbed from julian</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># jk it's called rob cause it's a robust z_score</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># but i did rob it, that parts not a lie</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>jull_rob.zscore <span class="ot">&lt;-</span> <span class="cf">function</span>(df){</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  mad.cols <span class="ot">&lt;-</span> mad.temp <span class="ot">&lt;-</span> med.cols <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  z.score <span class="ot">&lt;-</span> <span class="fu">data.frame</span>()</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(<span class="fu">colnames</span>(df))){</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(df[,i])){</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>      mad.temp[j] <span class="ot">&lt;-</span> <span class="fu">abs</span>(<span class="fu">as.numeric</span>(df[j,i]) <span class="sc">-</span> <span class="fu">median</span>((df[,i])))</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    mad.cols[i] <span class="ot">&lt;-</span> <span class="fu">median</span>((mad.temp))</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    med.cols[i] <span class="ot">&lt;-</span> <span class="fu">median</span>(<span class="fu">as.numeric</span>(df[,i]))</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(<span class="fu">colnames</span>(df))){</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(df[,i])){</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>      z.score[j,i] <span class="ot">&lt;-</span> (<span class="fl">0.6745</span><span class="sc">*</span>(df[j,i]<span class="sc">-</span>med.cols[i]))<span class="sc">/</span>mad.cols[i]</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(z.score) <span class="ot">&lt;-</span> <span class="fu">colnames</span>(df)</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames</span>(z.score) <span class="ot">&lt;-</span> <span class="fu">rownames</span>(df)</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="at">z.score =</span> z.score)</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>zscore_dat <span class="ot">=</span> <span class="fu">cbind</span>(longdat[<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">12</span><span class="sc">:</span><span class="dv">16</span>)], <span class="fu">jull_rob.zscore</span>(<span class="fu">as.data.frame</span>(longdat)[<span class="dv">2</span><span class="sc">:</span><span class="dv">11</span>]))</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>zscore_dat <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                Species      genus dorvent BET      Vis      Nir temp.mean
+1 Iphiclides podalirius Iphiclides    Dors   B 25.86675 51.99333 0.3786108
+2 Iphiclides podalirius Iphiclides    Dors   E 43.67681 78.16716 0.3786108
+3 Iphiclides podalirius Iphiclides    Dors   T 14.62852 37.66000 0.3786108
+4 Iphiclides podalirius Iphiclides    Vent   B 44.44800 89.09441 0.3786108
+5 Iphiclides podalirius Iphiclides    Vent   E 48.97116 85.56392 0.3786108
+    temp.min  temp.max precip.mean SolarRadi WaterVapor Isothermality
+1 -0.1090681 0.8079572  0.08715387 0.1412039  0.7511881     0.5884298
+2 -0.1090681 0.8079572  0.08715387 0.1412039  0.7511881     0.5884298
+3 -0.1090681 0.8079572  0.08715387 0.1412039  0.7511881     0.5884298
+4 -0.1090681 0.8079572  0.08715387 0.1412039  0.7511881     0.5884298
+5 -0.1090681 0.8079572  0.08715387 0.1412039  0.7511881     0.5884298
+  PrecipSeasonality TempSeasonality     Size
+1         0.6250344      -0.0513445 4.328524
+2         0.6250344      -0.0513445 4.328524
+3         0.6250344      -0.0513445 4.328524
+4         0.6250344      -0.0513445 4.328524
+5         0.6250344      -0.0513445 4.328524</code></pre>
+</div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>global_mod_vis <span class="ot">=</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(Vis <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>precip.mean <span class="sc">+</span> BET<span class="sc">*</span>WaterVapor <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> zscore_dat, <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>aic_score_vis <span class="ot">=</span> MuMIn<span class="sc">::</span><span class="fu">dredge</span>(global_mod_vis, <span class="at">beta =</span> <span class="st">"none"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in MuMIn::dredge(global_mod_vis, beta = "none"): comparing models
-fitted by REML</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0253903 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00216598 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00214826 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00403772 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0250199 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00505246 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00566782 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00511586 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0261356 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00513246 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00514886 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00247246 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0021052 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0142728 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0020918 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00428209 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0239463 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00401655 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00381366 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0026265 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00394121 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00338448 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0407194 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00267134 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00470741 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0104829 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0151169 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0175543 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0151656 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00836636 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00291821 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00786737 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00265872 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00317815 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00228597 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00878829 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0341452 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.00696524 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.0121314 (tol = 0.002, component 1)</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>aic_score_vis <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(AICc) <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>global_mod_vis <span class="ot">=</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(Vis <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>precip.mean <span class="sc">+</span> BET<span class="sc">*</span>WaterVapor <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> zscore_dat, <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>aic_score_vis <span class="ot">=</span> MuMIn<span class="sc">::</span><span class="fu">dredge</span>(global_mod_vis, <span class="at">beta =</span> <span class="st">"none"</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>aic_score_vis <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(AICc) <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Global model call: lme4::lmer(formula = Vis ~ BET * SolarRadi + BET * precip.mean + 
     BET * WaterVapor + BET * Isothermality + BET * temp.mean + 
@@ -531,37 +421,34 @@ Random terms (all models):
   1 | genus, 1 | dorvent</code></pre>
 </div>
 </div>
+<p>And the model best chosen by our AIC test is this one! We are including solar radiation, isothermality, mean temperature, and all of the interactions between those and BET.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>zscore_dat<span class="sc">$</span>Vis <span class="sc">%&gt;%</span> <span class="fu">hist</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="Butterflies_V2_files/figure-html/vis%20model%20fit-1.png" class="img-fluid" width="672"></p>
-</div>
-<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>zscore_dat<span class="sc">$</span>Vis <span class="sc">%&gt;%</span> log <span class="sc">%&gt;%</span> hist</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="Butterflies_V2_files/figure-html/vis%20model%20fit-2.png" class="img-fluid" width="672"></p>
-</div>
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>aic_mod_vis <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>((Vis) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>aic_mod_vis_log <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>(<span class="fu">log</span>(Vis) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
-<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>aic_mod_vis_glm <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
-<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">glmer</span>((Vis) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
-<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>, <span class="at">family =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">"log"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-Model failed to converge with max|grad| = 0.360728 (tol = 0.002, component 1)</code></pre>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>aic_mod_vis <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>((Vis) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>aic_mod_vis <span class="sc">%&gt;%</span> car<span class="sc">::</span><span class="fu">Anova</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: (Vis)
+                     Chisq Df Pr(&gt;Chisq)    
+BET               588.8156  3  &lt; 2.2e-16 ***
+SolarRadi           5.8337  1   0.015722 *  
+Isothermality       7.2976  1   0.006905 ** 
+temp.mean           1.6205  1   0.203026    
+BET:SolarRadi       2.6981  2   0.259483    
+BET:Isothermality   8.6026  2   0.013551 *  
+BET:temp.mean      10.8218  2   0.004468 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
+<p>Using the dredged model (and omitting the unecessary parameters), we were able to test how well the model fit the data using the DHARMa package.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co"># DHARMa::testDispersion(aic_mod_vis)</span></span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">testDispersion</span>(DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_vis))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">testDispersion</span>(DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_vis))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="Butterflies_V2_files/figure-html/vis%20residuals%20check-1.png" class="img-fluid" width="672"></p>
+<p><img src="Butterflies_V2_files/figure-html/residuals%20on%20vis%20aic%20mod-1.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -572,103 +459,164 @@ data:  simulationOutput
 dispersion = 0.96759, p-value = 0.76
 alternative hypothesis: two.sided</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_vis, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_vis, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="Butterflies_V2_files/figure-html/vis%20residuals%20check-2.png" class="img-fluid" width="672"></p>
+<p><img src="Butterflies_V2_files/figure-html/residuals%20on%20vis%20aic%20mod-2.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Object of Class DHARMa with simulated residuals based on 1000 simulations with refit = FALSE . See ?DHARMa::simulateResiduals for help. 
  
 Scaled residual values: 0.557 0.718 0.283 0.911 0.858 0.713 0.135 0.363 0.186 0.648 0.598 0.338 0.154 0.265 0.091 0.527 0.507 0.481 0.161 0.247 ...</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_vis_log, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Well clearly, these aren’t the greatest model fits. So from here we wanted to see if there were any models we could fit with different distributions that may improve things.</p>
+<p>So far we have been using normal distributions to do everything and the last DHARMa reading was very clearly pretty terrible.</p>
+<p>As you can see, the distribution of <code>Vis</code> is skewed left, and both the <code>sqrt()</code> and the <code>log()</code> transformed versions look a lot better! We decided to try a model that tries transforming them like that.</p>
+<p>We also tried a glm with a gamma distribution and a log link.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>zscore_dat<span class="sc">$</span>Vis <span class="sc">%&gt;%</span> <span class="fu">hist</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="Butterflies_V2_files/figure-html/vis%20residuals%20check-3.png" class="img-fluid" width="672"></p>
+<p><img src="Butterflies_V2_files/figure-html/creating%20alt%20vis%20mods-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>zscore_dat<span class="sc">$</span>Vis <span class="sc">%&gt;%</span> sqrt <span class="sc">%&gt;%</span> hist</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Butterflies_V2_files/figure-html/creating%20alt%20vis%20mods-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>zscore_dat<span class="sc">$</span>Vis <span class="sc">%&gt;%</span> log <span class="sc">%&gt;%</span> hist</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Butterflies_V2_files/figure-html/creating%20alt%20vis%20mods-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>aic_mod_vis_log <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>(<span class="fu">log</span>(Vis) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>aic_mod_vis_sqrt <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>(<span class="fu">sqrt</span>(Vis) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>aic_mod_vis_glm <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">glmer</span>((Vis) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>, <span class="at">family =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">"log"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To check the fit of the model, we’re looking at AIC scores again!</p>
+<p>Then we can compare the model with the best AIC to the residual plots we observed originally to see if there’s any improvement!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>MuMIn<span class="sc">::</span><span class="fu">AICc</span>(aic_mod_vis, aic_mod_vis_log, aic_mod_vis_sqrt, aic_mod_vis_glm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                 df      AICc
+aic_mod_vis      15 14974.918
+aic_mod_vis_log  15  1831.785
+aic_mod_vis_sqrt 15  5245.277
+aic_mod_vis_glm  15 14117.278</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_vis, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Butterflies_V2_files/figure-html/vis%20residuals%20check-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Object of Class DHARMa with simulated residuals based on 1000 simulations with refit = FALSE . See ?DHARMa::simulateResiduals for help. 
+ 
+Scaled residual values: 0.557 0.718 0.283 0.911 0.858 0.713 0.135 0.363 0.186 0.648 0.598 0.338 0.154 0.265 0.091 0.527 0.507 0.481 0.161 0.247 ...</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_vis_log, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Butterflies_V2_files/figure-html/vis%20residuals%20check-2.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Object of Class DHARMa with simulated residuals based on 1000 simulations with refit = FALSE . See ?DHARMa::simulateResiduals for help. 
  
 Scaled residual values: 0.659 0.684 0.355 0.898 0.792 0.814 0.07 0.451 0.215 0.712 0.618 0.453 0.111 0.344 0.028 0.624 0.575 0.605 0.04 0.301 ...</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_vis_glm, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>It’s still not great, but it looks a lot better!</p>
+<p>And now we repeat the process for the infrared data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>global_mod_nir <span class="ot">=</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(Nir <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>precip.mean <span class="sc">+</span> BET<span class="sc">*</span>WaterVapor <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> zscore_dat, <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>aic_score_nir <span class="ot">=</span> MuMIn<span class="sc">::</span><span class="fu">dredge</span>(global_mod_nir, <span class="at">beta =</span> <span class="st">"none"</span>)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>aic_score_nir <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(AICc) <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Global model call: lme4::lmer(formula = Nir ~ BET * SolarRadi + BET * precip.mean + 
+    BET * WaterVapor + BET * Isothermality + BET * temp.mean + 
+    (1 | genus) + (1 | dorvent) - 1, data = zscore_dat, na.action = "na.fail")
+---
+Model selection table 
+  BET    Ist    SlR tmp.men     WtV BET:Ist BET:SlR BET:tmp.men BET:WtV df
+1   + 1.0800 1.0720   1.064                       +           +         13
+2   + 1.0780 0.9267   1.330 -0.1653               +           +       + 16
+3   + 0.9559 1.1250   1.141               +       +           +         15
+     logLik    AICc delta weight
+1 -8049.494 16125.2  0.00  0.383
+2 -8046.653 16125.6  0.40  0.313
+3 -8047.693 16125.6  0.45  0.305
+Models ranked by AICc(x) 
+Random terms (all models): 
+  1 | genus, 1 | dorvent</code></pre>
+</div>
+</div>
+<p>Our most optimal model here is the inclusion of solar radiation, isothermality, and mean temperature, but with only solar radiation and mean temperature interacting with BET.</p>
+<p>creating alternate methods!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>zscore_dat<span class="sc">$</span>Nir <span class="sc">%&gt;%</span> <span class="fu">hist</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="Butterflies_V2_files/figure-html/vis%20residuals%20check-4.png" class="img-fluid" width="672"></p>
+<p><img src="Butterflies_V2_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Object of Class DHARMa with simulated residuals based on 1000 simulations with refit = FALSE . See ?DHARMa::simulateResiduals for help. 
- 
-Scaled residual values: 0.666 0.712 0.396 0.886 0.775 0.769 0.127 0.5 0.283 0.702 0.618 0.473 0.171 0.377 0.069 0.625 0.583 0.623 0.093 0.334 ...</code></pre>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>zscore_dat<span class="sc">$</span>Nir <span class="sc">%&gt;%</span> sqrt <span class="sc">%&gt;%</span> hist</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Butterflies_V2_files/figure-html/unnamed-chunk-1-2.png" class="img-fluid" width="672"></p>
 </div>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>zscore_dat<span class="sc">$</span>Nir <span class="sc">%&gt;%</span> log <span class="sc">%&gt;%</span> hist</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Butterflies_V2_files/figure-html/unnamed-chunk-1-3.png" class="img-fluid" width="672"></p>
 </div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>aic_mod_nir <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>((Nir) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>aic_mod_nir_log <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>(<span class="fu">log</span>(Nir) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>aic_mod_nir_sqrt <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>(<span class="fu">sqrt</span>(Nir) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>aic_mod_nir_glm <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">glmer</span>((Nir) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>, <span class="at">family =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">"log"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here it looks like the log transformed data is more skewed than either alternative, but the model still fit the best according to the AIC!</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>global_mod_nir <span class="ot">=</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(Nir <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> BET<span class="sc">*</span>precip.mean <span class="sc">+</span> BET<span class="sc">*</span>WaterVapor <span class="sc">+</span> BET<span class="sc">*</span>Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
-<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> zscore_dat, <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
-<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>aic_score_nir <span class="ot">=</span> MuMIn<span class="sc">::</span><span class="fu">dredge</span>(global_mod_nir, <span class="at">beta =</span> <span class="st">"none"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in MuMIn::dredge(global_mod_nir, beta = "none"): comparing models
-fitted by REML</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>aic_mod_nir <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
-<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>((Nir) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
-<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
-<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>aic_mod_nir_sqrt <span class="ot">=</span> zscore_dat <span class="sc">%&gt;%</span> </span>
-<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a>  lme4<span class="sc">::</span><span class="fu">lmer</span>(<span class="fu">sqrt</span>(Nir) <span class="sc">~</span> BET<span class="sc">*</span>SolarRadi <span class="sc">+</span> Isothermality <span class="sc">+</span> BET<span class="sc">*</span>temp.mean <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>genus) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>dorvent) <span class="sc">-</span> <span class="dv">1</span>, </span>
-<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> ., <span class="at">na.action =</span> <span class="st">"na.fail"</span>)</span>
-<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb74-9"><a href="#cb74-9" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(<span class="fu">resid</span>(aic_mod_nir))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>MuMIn<span class="sc">::</span><span class="fu">AICc</span>(aic_mod_nir, aic_mod_nir_log, aic_mod_nir_sqrt, aic_mod_vis_glm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>
-    Shapiro-Wilk normality test
-
-data:  resid(aic_mod_nir)
-W = 0.99623, p-value = 5.249e-05</code></pre>
+<pre><code>                 df       AICc
+aic_mod_nir      13 16125.1671
+aic_mod_nir_log  13   180.8929
+aic_mod_nir_sqrt 13  5181.4956
+aic_mod_vis_glm  15 14117.2780</code></pre>
 </div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">testDispersion</span>(aic_mod_nir)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_nir, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="Butterflies_V2_files/figure-html/nir%20residuals%20check-1.png" class="img-fluid" width="672"></p>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    simulated
-
-data:  simulationOutput
-dispersion = 0.93163, p-value = 0.72
-alternative hypothesis: two.sided</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">testDispersion</span>(DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_nir))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    simulated
-
-data:  simulationOutput
-dispersion = 0.93163, p-value = 0.72
-alternative hypothesis: two.sided</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_nir, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="Butterflies_V2_files/figure-html/nir%20residuals%20check-2.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Object of Class DHARMa with simulated residuals based on 1000 simulations with refit = FALSE . See ?DHARMa::simulateResiduals for help. 
  
 Scaled residual values: 0.443 0.49 0.234 0.951 0.68 0.76 0.05 0.261 0.133 0.698 0.458 0.306 0.091 0.214 0.045 0.61 0.472 0.515 0.071 0.116 ...</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_nir_sqrt, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(aic_mod_nir_log, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="Butterflies_V2_files/figure-html/nir%20residuals%20check-3.png" class="img-fluid" width="672"></p>
+<p><img src="Butterflies_V2_files/figure-html/nir%20residuals%20check-2.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Object of Class DHARMa with simulated residuals based on 1000 simulations with refit = FALSE . See ?DHARMa::simulateResiduals for help. 
  
-Scaled residual values: 0.473 0.497 0.254 0.937 0.661 0.788 0.034 0.299 0.142 0.712 0.468 0.345 0.079 0.249 0.022 0.634 0.488 0.555 0.031 0.14 ...</code></pre>
+Scaled residual values: 0.516 0.5 0.286 0.921 0.642 0.81 0.026 0.319 0.164 0.723 0.476 0.383 0.073 0.29 0.012 0.658 0.502 0.588 0.014 0.168 ...</code></pre>
 </div>
 </div>
+</section>
 </section>
 </section>
 
