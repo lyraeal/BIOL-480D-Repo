@@ -3,10 +3,6 @@ title: "Butterflies"
 format: html
 ---
 
-OK note to self, you need to save the file every time before running it I think. the errors that appear if you don't are incredible
-
-Wowww, this takes heckin forever to knit
-
 ## Study overview
 
 For our project, we decided to work with a dataset called *Data for butterfly near-infrared adaptation research* which we found on **Dryad**.
@@ -17,7 +13,7 @@ This dataset was collected with the goal of determining whether butterfly light 
 
 When possible, they photographed two of each species and averaged the reflectance values, for a sample size of 684 specimens overall. This sample size could skew our results because it did not account for a lot of intraspecific variation, and took 1-2 butterflies to be representative of an entire climatic niche. On a positive note, the 343 species photographed was a large sample size for focusing on interspecific variation, since this covered 70% of all butterfly species in Europe.
 
-```{r setup chunk}
+```{r setup chunk, echo = F}
 
 # html view: https://htmlpreview.github.io/?https://github.com/lyraeal/BIOL-480D-Repo/blob/main/scripts/Butterflies_V2.html
 
@@ -46,7 +42,7 @@ We also created a column that extracted the genus of each species. Here's some o
 We have the species and genus of each butterfly, which are *character* data, and the size of the entire wing was measured as an additional variable to consider, and was averaged within a species.
 
 | Variable | Description                                                    |
-|--------------------------|---------------------------------------------|
+|---------------------------|---------------------------------------------|
 | Species  | species name                                                   |
 | Size     | size (cm2) measured from one side of the both fore-/hind-wings |
 | Genus    | genus of species                                               |
@@ -68,7 +64,7 @@ The climate variables were collected from the CLIMBER dataset and WorldClim data
 #### Predictor variables
 
 | Variable          | Description                                                   |
-|--------------------------|---------------------------------------------|
+|---------------------------|---------------------------------------------|
 | temp.mean         | mean annual temperature (°C) across a species' range          |
 | temp.min          | mimimum annual temperature (°C) across a species' range       |
 | temp.max          | maximum annual temperature (°C) across a species' range       |
@@ -121,15 +117,40 @@ Additionally, certain butterfly body regions are more important for thermoregula
 
 Butterflies also regulate their body temperature by opening and closing their wings to expose or hide themselves from sunlight. **Dorsal basking** exposes the top part of their wings to sun, and plays an important role in **warming up**. Butterflies also close their wings tightly to shield themselves from solar radiation and **cool down**, which exposes the bottom, or **ventral** part of their wings.
 
+```{r intro graph}
+dat %>%
+  pivot_longer(12:23,
+               names_pattern = "([A-Z]i[a-z])([A-Z][a-z]*[A-Z])",
+               names_to = c(".value", "location")) %>%
+  ggplot(data = ., aes(x = temp.mean, y = Vis, color = location)) +
+  geom_point(alpha = 0.35, size = 1) +
+  geom_smooth(aes(linetype = location), method = "lm", size = 2) +
+  scale_color_manual(
+    values = c("DorsB" = "blue","VentB" = "magenta3",
+               "DorsT" = "steelblue1","VentT" = "maroon4",
+               "DorsE" = "royalblue1","VentE" = "hotpink2")) +
+  scale_linetype_manual(
+    values = c("DorsB" = "solid", "DorsT" = "solid",
+               "DorsE" = "dashed", "VentB" = "solid",
+               "VentT" = "solid", "VentE" = "dashed")) +
+  theme(legend.key.width = unit(2, "cm")) +
+  labs(x = "Mean Temperature (C)", y = "VIS Reflectance")
+
+```
+
 #### Hypothesis
 
-Therefore, **different climatic pressures could cause variation in reflectance values for different butterfly body regions**.
+Therefore, **different climatic pressures could cause variation in reflectance values for different butterfly body regions**, or in other words, we think the BET (basal, entire, abdomen / thorax) regions might reflect light differently depending on the typical climactic conditions that each species might be exposed to.
 
-In other words, we think the BET (basal, entire, abdomen / thorax) regions might reflect light differently depending on the typical climactic conditions that each species might be exposed to.
+**So then, how do the different body regions (B, E, and T) respond to different climate conditions and do they do so differently from one another?**
 
-## Data Manipulation
+## Data manipulation
 
-Our data currently groups together the dorsal and ventral sides with basal, entire, and abdomen / thorax (BET). However, we wanted to look only at the interaction between BET with the climactic variables, so we needed to separate out the dorsal and ventral into its own column, and BET into its own columns.
+To prepare the data for analysis, we **added a column for butterfly genus** by isolating the first word of the "Species" column variables. This **allowed us to include genus as a random effect variable** in our model to account for variation that may result from genetic relationships. (we did this earlier :))
+
+Additionally, our data currently groups together the dorsal and ventral sides with basal, entire, and abdomen / thorax (BET). However, we wanted to look only at the interaction between BET with the climactic variables, so we needed to separate out the dorsal and ventral into its own column, and BET into its own columns.
+
+To do this, we used the **pivot_longer** function to alter the columns so that instead of having twelve different response variable columns for NIR / VIS reflectance for Dorsal / Ventral side for the B / T / E body regions (ex: VisDorsT), we had one reflectance column for NIR, one reflectance column for VIS, one column denoting whether the body region was Dorsal or Ventral, and one column denoting whether the body region was B, T, or E. This **allowed us to generate a model where the body region type (B, E, or T) could be used as a predictor variable for NIR and VIS reflectance**.
 
 ```{r long dat}
 
@@ -143,7 +164,11 @@ longdat[,c(1, 13:16)] %>% head(5)
 
 ```
 
-So now let's run the model! For our global model (aka our model with what we think is the maximum predictors and interactions that the model should have, we decided to look at solar radiation, mean precipitation, water vapor pressure, and isothermality). We chose to look at these variables since we expected them to have effects on our response variables. They are climate variables that have large implications for butterfly life and wing reflectance. Temperature mean and isothermality both have to do with temperature regulation. Mean precipitation and water vapor both have to do with moisture regulation, which we hypothesize are connected to wing area and general reflectance. We also expect solar radiation to impact reflectance directly.
+So now let's run the model! Our two response variables will be Vis and Nir, the reflectance on the UV / visual spectrum, and the infrared spectrum respectively. We'll be doing indendent models for each of these, so let's go through vis first.
+
+For our global model (aka our model with what we think is the maximum predictors and interactions that the model should have, we decided to look at 4 predictor variables: solar radiation, mean precipitation, water vapor pressure, and isothermality).
+
+These are climate variables that have large implications for butterfly life and wing reflectance. Temperature mean and isothermality both have to do with temperature regulation. Mean precipitation and water vapor both have to do with moisture regulation, which we hypothesize are connected to wing area and general reflectance. We also expect solar radiation to impact reflectance directly.
 
 ```{r model attempt 1}
 
@@ -152,15 +177,12 @@ global_mod_vis = lme4::lmer(Vis ~ BET*SolarRadi + BET*precip.mean + BET*WaterVap
 
 ```
 
-When running the model, we immediately ran into a warning that our predictor variables are on different scales, and to accomodate for this, we decided to convert all our values to z-scores so they could be on similar scales.
+When running the model, we immediately ran into a warning that our predictor variables are on different scales, and to accommodate for this, we decided to convert all our values to z-scores so they could be on similar scales.
 
 Since our data is not normally distributed, we did a robust z-score.
 
 ```{r z-score}
 
-# robbed from julian
-# jk it's called rob cause it's a robust z_score
-# but i did rob it, that parts not a lie
 jull_rob.zscore <- function(df){
   mad.cols <- mad.temp <- med.cols <- c()
   z.score <- data.frame()
@@ -186,6 +208,19 @@ zscore_dat = cbind(longdat[c(1, 12:16)], jull_rob.zscore(as.data.frame(longdat)[
 zscore_dat %>% head(5)
 
 ```
+
+## UV / Visual reflectance model
+
+Now that we can actually fit our model, let's take a look at the aic scores! We're using a function called `dredge()` which is from the `MuMIn` package. This essentially takes a *global model* that has your maximum predictors and interactions, and then randomly drops them until it finds every combination smaller than the model you have.
+
+So assuming your model looked like this: `response ~ pred1 + pred2*pred3`, then `dredge()` can return the AIC scores of the following models:
+
+-   `response ~ pred1 + pred2*pred3`
+-   `response ~ pred1 + pred2 + pred3`
+-   `response ~ pred2*pred3`
+-   `response ~ pred2 + pred3`
+-   `response ~ pred1 + pred2`
+-   `response ~ pred1 + pred3`
 
 ```{r vis aic scores, warning = FALSE}
 
@@ -265,6 +300,8 @@ DHARMa::simulateResiduals(aic_mod_vis_log, n = 1000, plot = TRUE)
 
 It's still not great, but it looks a lot better!
 
+## Infrared reflectance model
+
 And now we repeat the process for the infrared data.
 
 ```{r nir model aic, warning = FALSE}
@@ -282,7 +319,7 @@ Our most optimal model here is the inclusion of solar radiation, isothermality, 
 
 creating alternate methods!
 
-```{r, warning = FALSE}
+```{r nir alt models, warning = FALSE}
 
 zscore_dat$Nir %>% hist()
 zscore_dat$Nir %>% sqrt %>% hist
@@ -316,3 +353,61 @@ DHARMa::simulateResiduals(aic_mod_nir, n = 1000, plot = TRUE)
 DHARMa::simulateResiduals(aic_mod_nir_log, n = 1000, plot = TRUE)
 
 ```
+
+## Final Results + plots!
+
+```{r final models}
+
+aic_mod_vis_log %>% car::Anova()
+aic_mod_nir_log %>% car::Anova()
+
+```
+
+```{r some plots}
+
+longdat[,c(1:2, 8, 14:16)] %>% 
+  ggplot(aes(x = temp.mean, y = Vis)) + 
+  geom_point(aes(color = BET)) + 
+  geom_smooth(method = "lm", aes(color = BET)) + 
+  geom_smooth(method = "lm", color = "red") + 
+  labs(x = "Mean temp", y = "UV / Visual reflectance", color = "Location") +
+  scale_color_manual(values = c("B" = "#53599A", "E" = "#6D9DC5", 
+                                "T" = "#80DED9")) +
+  theme_classic() + 
+  theme(axis.title = element_text(size = 12)) 
+  
+
+longdat[,c(1:2, 8, 14:16)] %>% 
+  ggplot(aes(x = temp.mean, y = Nir)) + 
+  geom_point(aes(color = BET)) + 
+  geom_smooth(method = "lm", aes(color = BET)) + 
+  geom_smooth(method = "lm", color = "red") + 
+  labs(x = "Mean temp", y = "Infrared reflectance", color = "Location") +
+  scale_color_manual(values = c("B" = "#53599A", "E" = "#6D9DC5", 
+                                "T" = "#80DED9")) +
+  theme_classic() + 
+  theme(axis.title = element_text(size = 12)) 
+
+longdat[,c(1:2, 8, 14:16)] %>% 
+  ggplot(aes(x = Isothermality, y = Vis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") + 
+  theme_classic() +
+  labs(y = "UV / Visual reflectance") +
+  theme_classic() + 
+  theme(axis.title = element_text(size = 12)) 
+
+longdat[,c(1:2, 8, 14:16)] %>% 
+  ggplot(aes(x = Isothermality, y = Nir)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") + 
+  theme_classic() +
+  labs(y = "UV / Visual reflectance") +
+  theme_classic() + 
+  theme(axis.title = element_text(size = 12)) 
+
+```
+
+So what does this tell us?
+
+Essentially temperature mean both has a significant interaction with the different parts of the butterfly's body that affects the infrared reflectance. This interaction also exists when considering the UV radiation reflectance. In both cases, solar radiation and isothermality affected the different light reflectances significantly, just not differently between the different body parts. From both the plots and the coefficients, you can clearly see that the thorax is affected by temperature mean more than any of the other parts of the butterfly. This could indicate that this part of the butterfly is much more important for the ultimate heat regulation than the entire wing area, or even the basal wing area.
